@@ -18,14 +18,18 @@ class DocumentScanner: NSObject {
         DispatchQueue.main.async {
             self.documentScanner = DocScanner()
 
+            // Extract maxNumDocuments from options, default to 1 for iOS
+            let maxNumDocuments = options["maxNumDocuments"] as? Int ?? 1
+
             // launch the document scanner
             self.documentScanner?.startScan(
                 RCTPresentedViewController(),
                 successHandler: { (scannedDocumentImages: [String]) in
-                    // document scan success
+                    // document scan success - limit the number of images returned
+                    let limitedImages = Array(scannedDocumentImages.prefix(maxNumDocuments))
                     resolve([
                         "status": "success",
-                        "scannedImages": scannedDocumentImages
+                        "scannedImages": limitedImages
                     ])
                     self.documentScanner = nil
                 },
@@ -42,7 +46,8 @@ class DocumentScanner: NSObject {
                     self.documentScanner = nil
                 },
                 responseType: options["responseType"] as? String,
-                croppedImageQuality: options["croppedImageQuality"] as? Int
+                croppedImageQuality: options["croppedImageQuality"] as? Int,
+                maxNumDocuments: maxNumDocuments
             )
         }
     }
